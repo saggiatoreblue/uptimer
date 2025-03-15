@@ -1,10 +1,29 @@
 import { Express, Request, Response, NextFunction } from "express";
 import { PORT } from "./config";
 import http from "http";
+import { ApolloServer } from "@apollo/server";
+
+const typeDefs = /* GraphQL */ `
+  type User {
+    username: String
+  }
+  type Query {
+    user: User
+  }
+`;
+
+const resolvers = {
+  Query: {
+    user() {
+      return { username: "Michael" };
+    },
+  },
+};
 
 export default class MonitorServer {
   private app: Express;
   private httpServer: http.Server;
+  private server: ApolloServer;
 
   constructor(app: Express) {
     this.app = app;
