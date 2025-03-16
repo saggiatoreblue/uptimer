@@ -2,7 +2,7 @@ import { INotificationDocument } from "@app/interfaces/notification.interface";
 import { NotificationModel } from "@app/models/notification.model";
 import { Model } from "sequelize";
 
-export async function createNewNotification(
+export async function createNotificationGroup(
   data: INotificationDocument
 ): Promise<INotificationDocument> {
   try {

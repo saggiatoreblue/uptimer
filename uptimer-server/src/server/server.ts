@@ -15,7 +15,7 @@ import {
 } from "./config";
 import http from "http";
 import cors from "cors";
-import { ApolloServer } from "@apollo/server";
+import { ApolloServer, BaseContext } from "@apollo/server";
 import { ApolloServerPluginDrainHttpServer } from "@apollo/server/plugin/drainHttpServer";
 import { ApolloServerPluginLandingPageDisabled } from "@apollo/server/plugin/disabled";
 import { ApolloServerPluginLandingPageLocalDefault } from "@apollo/server/plugin/landingPage/default";
@@ -24,15 +24,8 @@ import cookieSession from "cookie-session";
 import { makeExecutableSchema } from "@graphql-tools/schema";
 import { expressMiddleware } from "@apollo/server/express4";
 import logger from "./logger";
-
-const typeDefs = /* GraphQL */ `
-  type User {
-    username: String
-  }
-  type Query {
-    user: User
-  }
-`;
+import { mergedGQLSchema } from "@app/graphql/schema";
+import { GraphQLSchema } from "graphql";
 
 const resolvers = {
   Query: {
@@ -42,6 +35,11 @@ const resolvers = {
   },
 };
 
+export interface AppContext {
+  req: Request;
+  res: Response;
+}
+
 export default class MonitorServer {
   private app: Express;
   private httpServer: http.Server;
@@ -50,8 +48,11 @@ export default class MonitorServer {
   constructor(app: Express) {
     this.app = app;
     this.httpServer = new http.Server(app);
-    const schema = makeExecutableSchema({ typeDefs, resolvers });
-    this.server = new ApolloServer({
+    const schema: GraphQLSchema = makeExecutableSchema({
+      typeDefs: mergedGQLSchema,
+      resolvers,
+    });
+    this.server = new ApolloServer<AppContext | BaseContext>({
       schema,
       introspection: NODE_ENV !== "production",
       plugins: [
