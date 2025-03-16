@@ -22,7 +22,7 @@ export interface IUserDocument {
   facebookId?: string;
   email?: string;
   password?: string;
-  createAt?: Date;
+  createdAt?: Date;
   comparePassword(password: string, hashedPassword: string): Promise<boolean>;
   hashPassword(password: string): Promise<string>;
 }
