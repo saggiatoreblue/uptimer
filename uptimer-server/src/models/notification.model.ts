@@ -1,6 +1,6 @@
 import { INotificationDocument } from "@app/interfaces/notification.interface";
 import { sequelize } from "@app/server/database";
-import { Model, Optional, ModelDefined, DataTypes } from "sequelize";
+import { Optional, ModelDefined, DataTypes } from "sequelize";
 
 import { UserModel } from "./user.model";
 /* 

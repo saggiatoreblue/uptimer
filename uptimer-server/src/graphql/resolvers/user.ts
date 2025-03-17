@@ -13,6 +13,7 @@ import { GraphQLError } from "graphql";
 import { toLower, upperFirst } from "lodash";
 import { sign } from "jsonwebtoken";
 import { JWT_TOKEN } from "@app/server/config";
+import { Request } from "express";
 
 export const UserResolver = {
   Mutation: {
@@ -39,6 +40,12 @@ export const UserResolver = {
       } as IUserDocument;
 
       const result: IUserDocument | undefined = await createNewUser(authData);
+      const response: IUserResponse = await userReturnValue(
+        req,
+        result,
+        "register"
+      );
+      return response;
     },
   },
 };

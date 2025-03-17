@@ -23,6 +23,7 @@
     "graphql": "^16.10.0",
     "jsonwebtoken": "^9.0.2",
     "lodash": "^4.17.21",
+    "pg": "^8.14.0",
     "pino": "^9.6.0",
     "sequelize": "^6.37.6",
     "typescript": "^5.8.2",

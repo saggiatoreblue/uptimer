@@ -26,14 +26,7 @@ import { expressMiddleware } from "@apollo/server/express4";
 import logger from "./logger";
 import { mergedGQLSchema } from "@app/graphql/schema";
 import { GraphQLSchema } from "graphql";
-
-const resolvers = {
-  Query: {
-    user() {
-      return { username: "Michael" };
-    },
-  },
-};
+import { resolvers } from "@app/graphql/resolvers";
 
 export interface AppContext {
   req: Request;
@@ -75,6 +68,7 @@ export default class MonitorServer {
   private standardMiddleWare(app: Express): void {
     app.set("trust proxy", 1);
     app.use((_req: Request, res: Response, next: NextFunction) => {
+      console.log(_req);
       res.header("Cache-Control", "no-cache, no-store, must-revalidate");
       next();
     });
