@@ -8,6 +8,7 @@ import {
 import {
   createNewUser,
   getUserByProp,
+  getUserBySocialId,
   getUserByUsernameOrEmail,
 } from "@app/services/user.service";
 import { GraphQLError } from "graphql";
@@ -15,11 +16,72 @@ import { toLower, upperFirst } from "lodash";
 import { sign } from "jsonwebtoken";
 import { JWT_TOKEN } from "@app/server/config";
 import { Request } from "express";
-import { isEmail } from "@app/utils/utils";
+import { authenticateGraphQLRoute, isEmail } from "@app/utils/utils";
 import { UserModel } from "@app/models/user.model";
 
 export const UserResolver = {
+  Query: {
+    async checkCurrentUser(
+      _: undefined,
+      __: undefined,
+      contextValue: AppContext
+    ) {
+      const { req } = contextValue;
+      authenticateGraphQLRoute(req);
+
+      if (!req.session?.jwt) {
+        throw new GraphQLError("Token is not available. Please login again.");
+      }
+      const notifications = await getAllNotificationGroups(req.currentUser!.id);
+
+      return {
+        user: {
+          id: req.currentUser?.id,
+          username: req.currentUser?.username,
+          email: req.currentUser?.email,
+          createdAt: new Date(),
+        },
+        notifications,
+      };
+    },
+  },
   Mutation: {
+    async authSocialUser(
+      _: undefined,
+      args: { user: IUserDocument },
+      contextValue: AppContext
+    ) {
+      const { req } = contextValue;
+      const { user } = args;
+      //TODO: Add data validation
+      const { username, email, socialId, type } = user;
+      const checkIfUserExists: IUserDocument | undefined =
+        await getUserBySocialId(socialId!, email!, type!);
+
+      if (checkIfUserExists) {
+        const response: IUserResponse = await userReturnValue(
+          req,
+          checkIfUserExists,
+          "login"
+        );
+        return response;
+      } else {
+        const authData: IUserDocument = {
+          username: upperFirst(username),
+          email: toLower(email),
+          ...(type === "facebook" && { facebookId: socialId }),
+          ...(type === "google" && { googleId: socialId }),
+        } as IUserDocument;
+
+        const result: IUserDocument | undefined = await createNewUser(authData);
+        const response: IUserResponse = await userReturnValue(
+          req,
+          result,
+          "register"
+        );
+        return response;
+      }
+    },
     async loginUser(
       _: undefined,
       args: { username: string; password: string },
@@ -83,6 +145,12 @@ export const UserResolver = {
         "register"
       );
       return response;
+    },
+    logout(_: undefined, __: undefined, contextValue: AppContext) {
+      const { req } = contextValue;
+      req.session = undefined;
+      req.currentUser = undefined;
+      return null;
     },
   },
   User: {
