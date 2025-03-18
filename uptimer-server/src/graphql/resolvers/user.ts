@@ -7,6 +7,7 @@ import {
 } from "@app/services/notification.service";
 import {
   createNewUser,
+  getUserByProp,
   getUserByUsernameOrEmail,
 } from "@app/services/user.service";
 import { GraphQLError } from "graphql";
@@ -14,9 +15,45 @@ import { toLower, upperFirst } from "lodash";
 import { sign } from "jsonwebtoken";
 import { JWT_TOKEN } from "@app/server/config";
 import { Request } from "express";
+import { isEmail } from "@app/utils/utils";
+import { UserModel } from "@app/models/user.model";
 
 export const UserResolver = {
   Mutation: {
+    async loginUser(
+      _: undefined,
+      args: { username: string; password: string },
+      contextValue: AppContext
+    ) {
+      const { req } = contextValue;
+      const { username, password } = args;
+      const isValidEmail = isEmail(username);
+      const type: string = !isValidEmail ? "username" : "email";
+      const existingUser: IUserDocument | undefined = await getUserByProp(
+        username,
+        type
+      );
+
+      if (!existingUser) {
+        throw new GraphQLError("Invalid credentials");
+      }
+
+      const passwordMatch: boolean = await UserModel.prototype.comparePassword(
+        password,
+        existingUser.password!
+      );
+
+      if (!passwordMatch) {
+        throw new GraphQLError("Invalid credentials");
+      }
+
+      const response: IUserResponse = await userReturnValue(
+        req,
+        existingUser,
+        "login"
+      );
+      return response;
+    },
     async registerUser(
       _: undefined,
       args: { user: IUserDocument },
@@ -47,6 +84,9 @@ export const UserResolver = {
       );
       return response;
     },
+  },
+  User: {
+    createdAt: (user: IUserDocument) => new Date(user.createdAt!).toISOString(),
   },
 };
 
@@ -81,6 +121,7 @@ async function userReturnValue(
     id: result.id,
     email: result.email,
     username: result.username,
+    createdAt: result.createdAt,
   } as IUserDocument;
   return {
     user,
