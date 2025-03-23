@@ -1,6 +1,6 @@
 import { INotificationDocument } from "@app/interfaces/notification.interface";
 import { IUserDocument, IUserResponse } from "@app/interfaces/user.interface";
-import { AppContext } from "@app/server/server";
+import { AppContext } from "@app/interfaces/monitor.interface";
 import {
   createNotificationGroup,
   getAllNotificationGroups,
@@ -18,6 +18,7 @@ import { JWT_TOKEN } from "@app/server/config";
 import { Request } from "express";
 import { authenticateGraphQLRoute, isEmail } from "@app/utils/utils";
 import { UserModel } from "@app/models/user.model";
+import { UserLoginRules, UserRegisterationRules } from "@app/validations";
 
 export const UserResolver = {
   Query: {
@@ -89,6 +90,10 @@ export const UserResolver = {
     ) {
       const { req } = contextValue;
       const { username, password } = args;
+      await UserLoginRules.validate(
+        { username, password },
+        { abortEarly: false }
+      );
       const isValidEmail = isEmail(username);
       const type: string = !isValidEmail ? "username" : "email";
       const existingUser: IUserDocument | undefined = await getUserByProp(
@@ -123,7 +128,7 @@ export const UserResolver = {
     ) {
       const { req } = contextValue;
       const { user } = args;
-      //TODO: Add data validation
+      await UserRegisterationRules.validate(user, { abortEarly: false });
       const { username, email, password } = user;
       const checkIfUserExists: IUserDocument | undefined =
         await getUserByUsernameOrEmail(username!, email!);

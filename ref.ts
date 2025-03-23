@@ -1,0 +1,14 @@
+name: "Local Http Monitor";
+userId: 2;
+active: true;
+status: 0;
+frequency: 30;
+url: "http://localhost:5000/health";
+method: "GET";
+type: "http";
+alertThreshold: 2;
+timeout: 5;
+redirects: 0;
+responseTime: "3000";
+statusCode: "[200,204]";
+contentType: "text/html; charset=utf-8";

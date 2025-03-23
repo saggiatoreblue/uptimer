@@ -18,7 +18,8 @@ export const userSchema = buildSchema(/* GraphQL */ `
     facebookId: String
   }
 
-  type NotificationResult {
+  # TODO: this should be output type no?
+  input NotificationResult {
     id: ID!
     userId: Int!
     groupName: String!

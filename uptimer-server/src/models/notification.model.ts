@@ -3,13 +3,7 @@ import { sequelize } from "@app/server/database";
 import { Optional, ModelDefined, DataTypes } from "sequelize";
 
 import { UserModel } from "./user.model";
-/* 
-id?: Number;
-userId: number;
-groupName: string;
-emails: string;
-createdAt?: Date;
- */
+
 type NotificationCreationAttributes = Optional<
   INotificationDocument,
   "id" | "createdAt"

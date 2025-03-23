@@ -27,11 +27,16 @@ import logger from "./logger";
 import { mergedGQLSchema } from "@app/graphql/schema";
 import { GraphQLSchema } from "graphql";
 import { resolvers } from "@app/graphql/resolvers";
+import { AppContext } from "@app/interfaces/monitor.interface";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+import customFormat from "dayjs/plugin/customParseFormat";
+import { startMonitors } from "@app/utils/utils";
 
-export interface AppContext {
-  req: Request;
-  res: Response;
-}
+dayjs.extend(utc);
+dayjs.extend(timezone);
+dayjs.extend(customFormat);
 
 export default class MonitorServer {
   private app: Express;
@@ -115,6 +120,7 @@ export default class MonitorServer {
       const SERVER_PORT: number = parseInt(PORT!, 10) || 5000;
       this.httpServer.listen(SERVER_PORT, () => {
         logger.info(`Server running on port ${SERVER_PORT}`);
+        startMonitors();
       });
       logger.info(`Server has started with process id ${process.pid}`);
     } catch (error) {
