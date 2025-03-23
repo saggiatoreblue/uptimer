@@ -121,4 +121,8 @@ export const monitorSchema = buildSchema(/* GraphQL */ `
       type: String!
     ): DeleteMonitorResponse
   }
+
+  type Subscription {
+    monitorsUpdated: MonitorResponse
+  }
 `);

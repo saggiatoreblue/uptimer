@@ -3,7 +3,6 @@ import {
   IMonitorArgs,
   IMonitorDocument,
 } from "@app/interfaces/monitor.interface";
-import logger from "@app/server/logger";
 import {
   createMonitor,
   deleteSingleMonitor,
@@ -22,6 +21,9 @@ import {
   resumeMonitors,
 } from "@app/utils/utils";
 import { some, toLower } from "lodash";
+import { PubSub } from "graphql-subscriptions";
+
+export const pubSub: PubSub = new PubSub();
 
 export const MonitorResolver = {
   Query: {
@@ -71,8 +73,12 @@ export const MonitorResolver = {
           async () => {
             const monitors: IMonitorDocument[] =
               await getUserActiveMonitors(userId);
-            // TODO: publish data to client
-            logger.info(monitors[0].name);
+            pubSub.publish("MONITORS_UPDATED", {
+              monitorsUpdated: {
+                userId,
+                monitors,
+              },
+            });
           }
         );
       } else {
@@ -189,5 +195,11 @@ export const MonitorResolver = {
         : monitor.responseTime,
     notifications: (monitor: IMonitorDocument) =>
       getSingleNotificationGroup(monitor.notificationId!),
+  },
+
+  Subscription: {
+    monitorsUpdated: {
+      subscribe: () => pubSub.asyncIterableIterator(["MONITORS_UPDATED"]),
+    },
   },
 };
