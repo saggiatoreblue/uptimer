@@ -6,6 +6,7 @@ import {
 import {
   createMonitor,
   deleteSingleMonitor,
+  getHeartbeats,
   getMonitorById,
   getUserActiveMonitors,
   getUserMonitors,
@@ -19,9 +20,11 @@ import {
   appTimeZone,
   authenticateGraphQLRoute,
   resumeMonitors,
+  uptimePercentage,
 } from "@app/utils/utils";
 import { some, toLower } from "lodash";
 import { PubSub } from "graphql-subscriptions";
+import { IHeartbeat } from "@app/interfaces/heartbeats.interface";
 
 export const pubSub: PubSub = new PubSub();
 
@@ -195,6 +198,21 @@ export const MonitorResolver = {
         : monitor.responseTime,
     notifications: (monitor: IMonitorDocument) =>
       getSingleNotificationGroup(monitor.notificationId!),
+
+    heartbeats: async (monitor: IMonitorDocument): Promise<IHeartbeat[]> => {
+      const heartbeats = await getHeartbeats(monitor.type, monitor.id!, 24);
+      return heartbeats.slice(0, 16);
+    },
+
+    uptime: async (monitor: IMonitorDocument): Promise<number> => {
+      const heartbeats: IHeartbeat[] = await getHeartbeats(
+        monitor.type,
+        monitor.id!,
+        24
+      );
+
+      return uptimePercentage(heartbeats);
+    },
   },
 
   Subscription: {

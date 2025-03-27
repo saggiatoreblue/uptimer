@@ -14,6 +14,7 @@ import { verify } from "jsonwebtoken";
 import { toLower } from "lodash";
 import { startSingleJob } from "./jobs";
 import { pubSub } from "@app/graphql/resolvers/monitor";
+import { IHeartbeat } from "@app/interfaces/heartbeats.interface";
 
 export const appTimeZone: string =
   Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -103,6 +104,28 @@ export const enableAutoRefreshJob = (cookies: string): void => {
     );
   }
 };
+
+export const uptimePercentage = (heartbeats: IHeartbeat[]): number => {
+  if (!heartbeats) {
+    return 0;
+  }
+
+  const totalHeartbeats: number = heartbeats.length;
+  const downtimeHeartbeats: number = heartbeats.filter(
+    (heartbeat) => heartbeat.status === 1
+  ).length;
+
+  return (
+    Math.round(
+      ((totalHeartbeats - downtimeHeartbeats) / totalHeartbeats) * 100
+    ) || 0
+  );
+};
+
+export const encodeBase64 = (user: string, pass: string): string => {
+  return Buffer.from(`${user || ""}:${pass || ""}`).toString("base64");
+};
+
 const getCookies = (cookie: string): Record<string, string> => {
   const cookies: Record<string, string> = {};
   cookie.split(";").forEach((cookieData) => {
