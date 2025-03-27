@@ -1,5 +1,6 @@
 import { IHeartbeat } from "@app/interfaces/heartbeats.interface";
 import { IMonitorDocument } from "@app/interfaces/monitor.interface";
+import { IEmailLocals } from "@app/interfaces/notification.interface";
 import logger from "@app/server/logger";
 import { createHttpHeartBeat } from "@app/services/http.service";
 // import { IEmailLocals } from "@app/interfaces/notification.interface";
@@ -7,19 +8,19 @@ import {
   getMonitorById,
   updateMonitorStatus,
 } from "@app/services/monitor.service";
-import { encodeBase64 } from "@app/utils/utils";
+import { emailSender, encodeBase64, locals } from "@app/utils/utils";
 import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
 import dayjs from "dayjs";
 
 class HttpMonitor {
   errorCount: number;
   noSuccessAlert: boolean;
-  // emailsLocals: IEmailLocals;
+  emailsLocals: IEmailLocals;
 
   constructor() {
     this.errorCount = 0;
     this.noSuccessAlert = true;
-    // this.emailsLocals
+    this.emailsLocals = locals();
   }
 
   async start(data: IMonitorDocument): Promise<void> {
@@ -41,6 +42,7 @@ class HttpMonitor {
     const startTime: number = Date.now();
     try {
       const monitorData: IMonitorDocument = await getMonitorById(monitorId!);
+      this.emailsLocals.appName = monitorData.name;
       let basicAuthHeader = {};
       if (httpAuthMethod === "basic") {
         basicAuthHeader = {
@@ -79,7 +81,7 @@ class HttpMonitor {
 
       const response: AxiosResponse = await axios.request(options);
       const responseTime = Date.now() - startTime;
-      const heartbeatData: IHeartbeat = {
+      let heartbeatData: IHeartbeat = {
         monitorId: monitorId!,
         status: 0,
         code: response.status ?? 0,
@@ -107,6 +109,11 @@ class HttpMonitor {
           !contentTypeList.includes(response.headers["content-type"]))
       ) {
         heartbeatData.message = "Failed http assertion";
+        heartbeatData = {
+          ...heartbeatData,
+          status: 1,
+          message: "Failed http response assertion",
+        };
         this.errorAssertionCheck(monitorData, heartbeatData);
       } else {
         this.successAssertionCheck(monitorData, heartbeatData);
@@ -134,7 +141,11 @@ class HttpMonitor {
     ) {
       this.errorCount = 0;
       this.noSuccessAlert = false;
-      // TODO: send error email
+      emailSender(
+        monitorData.notifications!.emails,
+        "errorStatus",
+        this.emailsLocals
+      );
     }
     logger.info(
       `HTTP heartbeat failed assertions: Monitor ID ${monitorData.id}`
@@ -153,7 +164,11 @@ class HttpMonitor {
     if (!this.noSuccessAlert) {
       this.errorCount = 0;
       this.noSuccessAlert = true;
-      // TODO: send success email
+      emailSender(
+        monitorData.notifications!.emails,
+        "successStatus",
+        this.emailsLocals
+      );
     }
     logger.info(`HTTP heartbeat success: Monitor ID ${monitorData.id}`);
   }
@@ -168,7 +183,7 @@ class HttpMonitor {
 
     this.errorCount += 1;
     const timestamp = dayjs.utc().valueOf();
-    const heartbeatData: IHeartbeat = {
+    let heartbeatData: IHeartbeat = {
       monitorId: monitorId!,
       status: 1,
       code: error.response ? error.response.status : 500,
@@ -196,7 +211,11 @@ class HttpMonitor {
     ) {
       this.errorCount = 0;
       this.noSuccessAlert = false;
-      // TODO: send error email
+      emailSender(
+        monitorData.notifications!.emails,
+        "errorStatus",
+        this.emailsLocals
+      );
     }
   }
 }

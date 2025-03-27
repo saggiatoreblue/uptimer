@@ -12,5 +12,5 @@ export interface IEmailLocals {
   appIcon: string;
   appName: string;
   subject?: string;
-  usernmae?: string;
+  username?: string;
 }

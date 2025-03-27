@@ -12,16 +12,18 @@ import {
 } from "@app/services/monitor.service";
 import dayjs from "dayjs";
 import { mongodbPing } from "./monitors";
+import { IEmailLocals } from "@app/interfaces/notification.interface";
+import { emailSender, locals } from "@app/utils/utils";
 
 class MongoMonitor {
   errorCount: number;
   noSuccessAlert: boolean;
-  // emailsLocals: IEmailLocals;
+  emailsLocals: IEmailLocals;
 
   constructor() {
     this.errorCount = 0;
     this.noSuccessAlert = true;
-    // this.emailsLocals
+    this.emailsLocals = locals();
   }
 
   async start(data: IMonitorDocument): Promise<void> {
@@ -29,7 +31,7 @@ class MongoMonitor {
 
     try {
       const monitorData: IMonitorDocument = await getMonitorById(monitorId!);
-
+      this.emailsLocals.appName = monitorData.name;
       const response: IMonitorResponse = await mongodbPing(url!);
 
       if (monitorData.connection !== response.status) {
@@ -69,7 +71,11 @@ class MongoMonitor {
     ) {
       this.errorCount = 0;
       this.noSuccessAlert = false;
-      // TODO: send error email
+      emailSender(
+        monitorData.notifications!.emails,
+        "errorStatus",
+        this.emailsLocals
+      );
     }
     logger.info(
       `HTTP heartbeat failed assertions: Monitor ID ${monitorData.id}`
@@ -97,7 +103,11 @@ class MongoMonitor {
     if (!this.noSuccessAlert) {
       this.errorCount = 0;
       this.noSuccessAlert = true;
-      // TODO: send success email
+      emailSender(
+        monitorData.notifications!.emails,
+        "successStatus",
+        this.emailsLocals
+      );
     }
     logger.info(`MongoDB heartbeat success: Monitor ID ${monitorData.id}`);
   }
@@ -131,7 +141,11 @@ class MongoMonitor {
     ) {
       this.errorCount = 0;
       this.noSuccessAlert = false;
-      // TODO: send error email
+      emailSender(
+        monitorData.notifications!.emails,
+        "errorStatus",
+        this.emailsLocals
+      );
     }
   }
 }

@@ -13,7 +13,7 @@ export const sequelize: Sequelize = new Sequelize(POSTGRES_DB, {
 export async function databaseConnection(): Promise<void> {
   try {
     await sequelize.authenticate();
-    await sequelize.sync({ force: true });
+    await sequelize.sync();
     console.info("Postgres database connection has been established.");
   } catch (error) {
     logger.error("Unable to connect to database.", error);
