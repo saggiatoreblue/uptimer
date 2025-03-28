@@ -1,4 +1,4 @@
-import { IHeartbeat } from "@app/interfaces/heartbeats.interface";
+import { IHeartbeat } from "@app/interfaces/heartbeat.interface";
 import { IMonitorDocument } from "@app/interfaces/monitor.interface";
 import { RedisModel } from "@app/models/redis.model";
 import { redisMonitor } from "@app/monitors/redis.monitor";

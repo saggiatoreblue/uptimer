@@ -1,4 +1,4 @@
-import { IHeartbeat } from "@app/interfaces/heartbeats.interface";
+import { IHeartbeat } from "@app/interfaces/heartbeat.interface";
 import { IMonitorDocument } from "@app/interfaces/monitor.interface";
 import { TcpModel } from "@app/models/tcp.model";
 import { tcpMonitor } from "@app/monitors/tcp.monitor";

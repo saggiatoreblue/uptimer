@@ -8,7 +8,7 @@ import {
 } from "@app/services/monitor.service";
 import { tcpPing } from "./monitors";
 import dayjs from "dayjs";
-import { IHeartbeat } from "@app/interfaces/heartbeats.interface";
+import { IHeartbeat } from "@app/interfaces/heartbeat.interface";
 
 import logger from "@app/server/logger";
 import { createTcpHeartBeat } from "@app/services/tcp.service";

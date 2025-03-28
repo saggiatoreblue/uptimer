@@ -1,4 +1,4 @@
-import { IHeartbeat } from "@app/interfaces/heartbeats.interface";
+import { IHeartbeat } from "@app/interfaces/heartbeat.interface";
 import { IMonitorDocument } from "@app/interfaces/monitor.interface";
 import { HttpModel } from "@app/models/http.model";
 import { httpMonitor } from "@app/monitors/http.monitor";

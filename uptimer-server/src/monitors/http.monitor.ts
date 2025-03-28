@@ -1,4 +1,4 @@
-import { IHeartbeat } from "@app/interfaces/heartbeats.interface";
+import { IHeartbeat } from "@app/interfaces/heartbeat.interface";
 import { IMonitorDocument } from "@app/interfaces/monitor.interface";
 import { IEmailLocals } from "@app/interfaces/notification.interface";
 import logger from "@app/server/logger";

@@ -1,4 +1,4 @@
-import { IHeartbeat } from "@app/interfaces/heartbeats.interface";
+import { IHeartbeat } from "@app/interfaces/heartbeat.interface";
 import { sequelize } from "@app/server/database";
 import { DataTypes, ModelDefined, Optional } from "sequelize";
 

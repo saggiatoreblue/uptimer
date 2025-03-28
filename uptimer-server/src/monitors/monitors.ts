@@ -2,6 +2,11 @@ import { IMonitorResponse } from "@app/interfaces/monitor.interface";
 import { createClient } from "redis";
 import { MongoClient } from "mongodb";
 import { Socket } from "net";
+import { ISSLInfo } from "@app/interfaces/ssl.interface";
+import { Agent, request, RequestOptions } from "https";
+import { ClientRequest, IncomingMessage } from "http";
+import { PeerCertificate, TLSSocket } from "tls";
+import { getDaysRemaining } from "@app/utils/utils";
 export const mongodbPing = async (
   connectionString: string
 ): Promise<IMonitorResponse> => {
@@ -142,5 +147,94 @@ export const tcpPing = async (
         code: 500,
       });
     });
+  });
+};
+
+export const getCertificateInfo = async (url: string): Promise<ISSLInfo> => {
+  return new Promise((resolve, reject) => {
+    if (!url?.startsWith("https://")) {
+      reject(new Error(`Host ${url} is invalid`));
+    } else {
+      const list: string[] = url.split("//");
+      const host: string = list[1];
+
+      const options: Partial<RequestOptions> = {
+        agent: new Agent({
+          maxCachedSessions: 0,
+          rejectUnauthorized: false,
+        }),
+        port: 443,
+        path: "/",
+      };
+
+      const req: ClientRequest = request(
+        { host, ...options },
+        (res: IncomingMessage) => {
+          const authorized: boolean = (res.socket as TLSSocket).authorized;
+          const authorizationError: Error = (res.socket as TLSSocket)
+            .authorizationError;
+          const cert: PeerCertificate = (
+            res.socket as TLSSocket
+          ).getPeerCertificate();
+          const validFor: string[] | undefined = cert.subjectaltname
+            ?.replace(/DNS:|IP Address:/g, "")
+            .split(", ");
+          const validTo: Date = new Date(cert.valid_to);
+          const daysRemaining: number = getDaysRemaining(new Date(), validTo);
+          const parsed: ISSLInfo = {
+            host,
+            type: authorized ? "success" : "error",
+            reason: authorizationError,
+            validFor: validFor!,
+            subject: {
+              org: cert.subject.O,
+              common_name: cert.subject.CN,
+              sans: cert.subjectaltname,
+            },
+            issuer: {
+              org: cert.issuer.O,
+              common_name: cert.issuer.CN,
+              country: cert.issuer.C,
+            },
+
+            info: {
+              validFrom: cert.valid_from,
+              validTo: cert.valid_to,
+              daysLeft: `${daysRemaining}`,
+              backgroundClass: "",
+            },
+          };
+
+          if (authorized) {
+            if (daysRemaining <= 30) {
+              parsed.type = "danger";
+              parsed.info.backgroundClass = "danger";
+            } else if (daysRemaining > 30 && daysRemaining <= 59) {
+              parsed.type = "expiring soon";
+              parsed.info.backgroundClass = "warning";
+            } else {
+              parsed.info.backgroundClass = "success";
+            }
+          } else {
+            parsed.info.backgroundClass = "danger";
+          }
+
+          if (authorized) {
+            resolve(parsed);
+          } else {
+            reject(parsed);
+          }
+        }
+      );
+
+      req.on("timeout", () => {
+        req.destroy();
+        reject(new Error("Request timeout"));
+      });
+
+      req.setTimeout(5000);
+
+      req.end();
+    }
   });
 };

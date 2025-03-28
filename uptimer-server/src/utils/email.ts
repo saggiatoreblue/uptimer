@@ -53,7 +53,7 @@ async function emailTemplates(
       },
     });
     await email.send({
-      template: path.join(__dirname, "..", "/emails", template),
+      template: path.join(__dirname, "..", "email", template),
       message: { to: receiver },
       locals,
     });

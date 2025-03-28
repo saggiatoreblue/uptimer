@@ -8,7 +8,7 @@ import {
 } from "@app/services/monitor.service";
 import { redisPing } from "./monitors";
 import dayjs from "dayjs";
-import { IHeartbeat } from "@app/interfaces/heartbeats.interface";
+import { IHeartbeat } from "@app/interfaces/heartbeat.interface";
 import { createRedisHeartBeat } from "@app/services/redis.service";
 import logger from "@app/server/logger";
 import { IEmailLocals } from "@app/interfaces/notification.interface";

@@ -1,43 +1,54 @@
 import { IMonitorDocument } from "@app/interfaces/monitor.interface";
 import { MonitorModel } from "@app/models/monitor.model";
 import { Model, Op } from "sequelize";
-import { getSingleNotificationGroup } from "./notification.service";
 import dayjs from "dayjs";
-import { getHttpHeartBeatsByDuration, httpStatusMonitor } from "./http.service";
 import { toLower } from "lodash";
-import { IHeartbeat } from "@app/interfaces/heartbeats.interface";
+import { IHeartbeat } from "@app/interfaces/heartbeat.interface";
+import { getSingleNotificationGroup } from "@app/services/notification.service";
 import { uptimePercentage } from "@app/utils/utils";
 import { HttpModel } from "@app/models/http.model";
-import {
-  getMongoDBHeartBeatsByDuration,
-  mongoDBStatusMonitor,
-} from "./mongo.service";
 import { MongoModel } from "@app/models/mongo.model";
+import { RedisModel } from "@app/models/redis.model";
+import { TcpModel } from "@app/models/tcp.model";
+
+import { getHttpHeartBeatsByDuration, httpStatusMonitor } from "./http.service";
+import {
+  getMongoHeartBeatsByDuration,
+  mongoStatusMonitor,
+} from "./mongo.service";
 import {
   getRedisHeartBeatsByDuration,
   redisStatusMonitor,
 } from "./redis.service";
 import { getTcpHeartBeatsByDuration, tcpStatusMonitor } from "./tcp.service";
-import { RedisModel } from "@app/models/redis.model";
-import { TcpModel } from "@app/models/tcp.model";
 
 const HTTP_TYPE = "http";
 const TCP_TYPE = "tcp";
 const MONGO_TYPE = "mongodb";
 const REDIS_TYPE = "redis";
 
+/**
+ * Create a new monitor
+ * @param data
+ * @returns {Promise<IMonitorDocument>}
+ */
 export const createMonitor = async (
   data: IMonitorDocument
 ): Promise<IMonitorDocument> => {
   try {
     const result: Model = await MonitorModel.create(data);
-
     return result.dataValues;
   } catch (error) {
     throw new Error(error);
   }
 };
 
+/**
+ * Get either all monitors (active or inactive) or just active for a user
+ * @param userId
+ * @param active
+ * @returns
+ */
 export const getUserMonitors = async (
   userId: number,
   active?: boolean
@@ -57,25 +68,28 @@ export const getUserMonitors = async (
       },
       order: [["createdAt", "DESC"]],
     })) as unknown as IMonitorDocument[];
-
     return monitors;
   } catch (error) {
     throw new Error(error);
   }
 };
 
+/**
+ * Get all active monitors for a user
+ * @param userId
+ * @returns {Promise<IMonitorDocument[]>}
+ */
 export const getUserActiveMonitors = async (
   userId: number
 ): Promise<IMonitorDocument[]> => {
   try {
     let heartbeats: IHeartbeat[] = [];
-    const monitors: IMonitorDocument[] = await getUserMonitors(userId, true);
     const updatedMonitors: IMonitorDocument[] = [];
+    const monitors: IMonitorDocument[] = await getUserMonitors(userId, true);
     for (let monitor of monitors) {
       const group = await getSingleNotificationGroup(monitor.notificationId!);
       heartbeats = await getHeartbeats(monitor.type, monitor.id!, 24);
-      // Calculate update
-      const uptime = uptimePercentage(heartbeats);
+      const uptime: number = uptimePercentage(heartbeats);
       monitor = {
         ...monitor,
         uptime,
@@ -90,7 +104,11 @@ export const getUserActiveMonitors = async (
   }
 };
 
-export const getAllUserActiveMonitors = async (): Promise<
+/**
+ * Get active monitors for all users
+ * @returns {Promise<IMonitorDocument[]>}
+ */
+export const getAllUsersActiveMonitors = async (): Promise<
   IMonitorDocument[]
 > => {
   try {
@@ -99,13 +117,17 @@ export const getAllUserActiveMonitors = async (): Promise<
       where: { active: true },
       order: [["createdAt", "DESC"]],
     })) as unknown as IMonitorDocument[];
-
     return monitors;
   } catch (error) {
     throw new Error(error);
   }
 };
 
+/**
+ * Get monitor by id
+ * @param monitorId
+ * @returns {Promise<IMonitorDocument>}
+ */
 export const getMonitorById = async (
   monitorId: number
 ): Promise<IMonitorDocument> => {
@@ -114,20 +136,24 @@ export const getMonitorById = async (
       raw: true,
       where: { id: monitorId },
     })) as unknown as IMonitorDocument;
-
     let updatedMonitor: IMonitorDocument = { ...monitor };
     const notifications = await getSingleNotificationGroup(
       updatedMonitor.notificationId!
     );
-
     updatedMonitor = { ...updatedMonitor, notifications };
-
     return updatedMonitor;
   } catch (error) {
     throw new Error(error);
   }
 };
 
+/**
+ * Toggle active/inactive monitor
+ * @param monitorId
+ * @param userId
+ * @param active
+ * @returns {Promise<IMonitorDocument[]>}
+ */
 export const toggleMonitor = async (
   monitorId: number,
   userId: number,
@@ -142,7 +168,6 @@ export const toggleMonitor = async (
         },
       }
     );
-
     const result: IMonitorDocument[] = await getUserMonitors(userId);
     return result;
   } catch (error) {
@@ -150,6 +175,13 @@ export const toggleMonitor = async (
   }
 };
 
+/**
+ * Update single monitor
+ * @param monitorId
+ * @param userId
+ * @param data
+ * @returns {Promise<IMonitorDocument[]>}
+ */
 export const updateSingleMonitor = async (
   monitorId: number,
   userId: number,
@@ -159,7 +191,6 @@ export const updateSingleMonitor = async (
     await MonitorModel.update(data, {
       where: { id: monitorId },
     });
-
     const result: IMonitorDocument[] = await getUserMonitors(userId);
     return result;
   } catch (error) {
@@ -167,6 +198,13 @@ export const updateSingleMonitor = async (
   }
 };
 
+/**
+ * Update monitor status
+ * @param monitor
+ * @param timestamp
+ * @param type
+ * @returns {Promise<IMonitorDocument>}
+ */
 export const updateMonitorStatus = async (
   monitor: IMonitorDocument,
   timestamp: number,
@@ -183,7 +221,6 @@ export const updateMonitorStatus = async (
     } else if (!isStatus && status === 0) {
       updatedMonitor.lastChanged = now;
     }
-
     await MonitorModel.update(updatedMonitor, { where: { id } });
     return updatedMonitor;
   } catch (error) {
@@ -191,6 +228,13 @@ export const updateMonitorStatus = async (
   }
 };
 
+/**
+ * Delete a single monitor with its associated heartbeats
+ * @param monitorId
+ * @param userId
+ * @param type
+ * @returns {Promise<IMonitorDocument[]>}
+ */
 export const deleteSingleMonitor = async (
   monitorId: number,
   userId: number,
@@ -198,7 +242,6 @@ export const deleteSingleMonitor = async (
 ): Promise<IMonitorDocument[]> => {
   try {
     await deleteMonitorTypeHeartbeats(monitorId, type);
-
     await MonitorModel.destroy({
       where: { id: monitorId },
     });
@@ -209,6 +252,13 @@ export const deleteSingleMonitor = async (
   }
 };
 
+/**
+ * Get monitor heartbeats
+ * @param type
+ * @param monitorId
+ * @param duration
+ * @returns {Promise<IHeartbeat[]>}
+ */
 export const getHeartbeats = async (
   type: string,
   monitorId: number,
@@ -223,30 +273,36 @@ export const getHeartbeats = async (
     heartbeats = await getTcpHeartBeatsByDuration(monitorId, duration);
   }
   if (type === MONGO_TYPE) {
-    heartbeats = await getMongoDBHeartBeatsByDuration(monitorId, duration);
+    heartbeats = await getMongoHeartBeatsByDuration(monitorId, duration);
   }
   if (type === REDIS_TYPE) {
     heartbeats = await getRedisHeartBeatsByDuration(monitorId, duration);
   }
-
   return heartbeats;
 };
+
+/**
+ * Start uptime monitors
+ * @param monitor
+ * @param name
+ * @param type
+ */
 export const startCreatedMonitors = (
   monitor: IMonitorDocument,
   name: string,
   type: string
 ): void => {
   if (type === HTTP_TYPE) {
-    httpStatusMonitor(monitor, toLower(name));
+    httpStatusMonitor(monitor!, toLower(name));
   }
   if (type === TCP_TYPE) {
-    tcpStatusMonitor(monitor, toLower(name));
+    tcpStatusMonitor(monitor!, toLower(name));
   }
   if (type === MONGO_TYPE) {
-    mongoDBStatusMonitor(monitor, toLower(name));
+    mongoStatusMonitor(monitor!, toLower(name));
   }
   if (type === REDIS_TYPE) {
-    redisStatusMonitor(monitor, toLower(name));
+    redisStatusMonitor(monitor!, toLower(name));
   }
 };
 

@@ -1,19 +1,19 @@
-import { IHeartbeat } from "@app/interfaces/heartbeats.interface";
+import { IEmailLocals } from "@app/interfaces/notification.interface";
+import { IHeartbeat } from "@app/interfaces/heartbeat.interface";
 import {
   IMonitorDocument,
   IMonitorResponse,
 } from "@app/interfaces/monitor.interface";
 import logger from "@app/server/logger";
-import { createMongoDBHeartBeat } from "@app/services/mongo.service";
-// import { IEmailLocals } from "@app/interfaces/notification.interface";
 import {
   getMonitorById,
   updateMonitorStatus,
 } from "@app/services/monitor.service";
 import dayjs from "dayjs";
-import { mongodbPing } from "./monitors";
-import { IEmailLocals } from "@app/interfaces/notification.interface";
+import { createMongoHeartBeat } from "@app/services/mongo.service";
 import { emailSender, locals } from "@app/utils/utils";
+
+import { mongodbPing } from "./monitors";
 
 class MongoMonitor {
   errorCount: number;
@@ -28,12 +28,10 @@ class MongoMonitor {
 
   async start(data: IMonitorDocument): Promise<void> {
     const { monitorId, url } = data;
-
     try {
       const monitorData: IMonitorDocument = await getMonitorById(monitorId!);
       this.emailsLocals.appName = monitorData.name;
       const response: IMonitorResponse = await mongodbPing(url!);
-
       if (monitorData.connection !== response.status) {
         this.errorAssertionCheck(response.responseTime, monitorData);
       } else {
@@ -49,22 +47,21 @@ class MongoMonitor {
     responseTime: number,
     monitorData: IMonitorDocument
   ): Promise<void> {
-    this.errorCount++;
+    this.errorCount += 1;
     const timestamp = dayjs.utc().valueOf();
     const heartbeatData: IHeartbeat = {
       monitorId: monitorData.id!,
       status: 1,
+      code: 500,
       message: "Connection status incorrect",
       timestamp,
       responseTime,
       connection: "refused",
-      code: 500,
     };
     await Promise.all([
       updateMonitorStatus(monitorData, timestamp, "failure"),
-      createMongoDBHeartBeat(heartbeatData),
+      createMongoHeartBeat(heartbeatData),
     ]);
-
     if (
       monitorData.alertThreshold > 0 &&
       this.errorCount > monitorData.alertThreshold
@@ -78,7 +75,7 @@ class MongoMonitor {
       );
     }
     logger.info(
-      `HTTP heartbeat failed assertions: Monitor ID ${monitorData.id}`
+      `MONGODB heartbeat failed assertions: Monitor ID ${monitorData.id}`
     );
   }
 
@@ -89,17 +86,16 @@ class MongoMonitor {
     const heartbeatData: IHeartbeat = {
       monitorId: monitorData.id!,
       status: 0,
+      code: response.code,
       message: response.message,
       timestamp: dayjs.utc().valueOf(),
       responseTime: response.responseTime,
       connection: response.status,
-      code: response.code,
     };
     await Promise.all([
       updateMonitorStatus(monitorData, heartbeatData.timestamp, "success"),
-      createMongoDBHeartBeat(heartbeatData),
+      createMongoHeartBeat(heartbeatData),
     ]);
-
     if (!this.noSuccessAlert) {
       this.errorCount = 0;
       this.noSuccessAlert = true;
@@ -109,15 +105,14 @@ class MongoMonitor {
         this.emailsLocals
       );
     }
-    logger.info(`MongoDB heartbeat success: Monitor ID ${monitorData.id}`);
+    logger.info(`MONGODB heartbeat success: Monitor ID ${monitorData.id}`);
   }
 
   async mongoDBError(
     monitorData: IMonitorDocument,
     error: IMonitorResponse
   ): Promise<void> {
-    logger.info(`MongoDB heartbeat failed: Monitor ID ${monitorData.id}`);
-
+    logger.info(`MONGODB heartbeat failed: Monitor ID ${monitorData.id}`);
     this.errorCount += 1;
     const timestamp = dayjs.utc().valueOf();
     const heartbeatData: IHeartbeat = {
@@ -129,12 +124,10 @@ class MongoMonitor {
       responseTime: error.responseTime,
       connection: error.status,
     };
-
     await Promise.all([
       updateMonitorStatus(monitorData, timestamp, "failure"),
-      createMongoDBHeartBeat(heartbeatData),
+      createMongoHeartBeat(heartbeatData),
     ]);
-
     if (
       monitorData.alertThreshold > 0 &&
       this.errorCount > monitorData.alertThreshold

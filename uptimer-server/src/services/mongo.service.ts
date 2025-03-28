@@ -1,4 +1,4 @@
-import { IHeartbeat } from "@app/interfaces/heartbeats.interface";
+import { IHeartbeat } from "@app/interfaces/heartbeat.interface";
 import { IMonitorDocument } from "@app/interfaces/monitor.interface";
 import { MongoModel } from "@app/models/mongo.model";
 import { mongoMonitor } from "@app/monitors/mongo.monitor";
@@ -7,7 +7,7 @@ import { appTimeZone } from "@app/utils/utils";
 import dayjs from "dayjs";
 import { Model, Op } from "sequelize";
 
-export const createMongoDBHeartBeat = async (
+export const createMongoHeartBeat = async (
   data: IHeartbeat
 ): Promise<IHeartbeat> => {
   try {
@@ -18,7 +18,7 @@ export const createMongoDBHeartBeat = async (
   }
 };
 
-export const getMongoDBHeartBeatsByDuration = async (
+export const getMongoHeartBeatsByDuration = async (
   monitorId: number,
   duration = 24
 ): Promise<IHeartbeat[]> => {
@@ -39,14 +39,13 @@ export const getMongoDBHeartBeatsByDuration = async (
       },
       order: [["timestamp", "DESC"]],
     })) as unknown as IHeartbeat[];
-
     return heartbeats;
   } catch (error) {
     throw new Error(error);
   }
 };
 
-export const mongoDBStatusMonitor = (
+export const mongoStatusMonitor = (
   monitor: IMonitorDocument,
   name: string
 ): void => {
@@ -54,8 +53,7 @@ export const mongoDBStatusMonitor = (
     monitorId: monitor.id,
     url: monitor.url,
   } as IMonitorDocument;
-
-  startSingleJob(name, appTimeZone, monitor.frequency, async () => {
-    mongoMonitor.start(mongoMonitorData);
-  });
+  startSingleJob(name, appTimeZone, monitor.frequency, async () =>
+    mongoMonitor.start(mongoMonitorData)
+  );
 };

@@ -1,7 +1,7 @@
 import {
   IHeartbeat,
   IHeartBeatArgs,
-} from "@app/interfaces/heartbeats.interface";
+} from "@app/interfaces/heartbeat.interface";
 import { AppContext } from "@app/interfaces/monitor.interface";
 import { getHeartbeats } from "@app/services/monitor.service";
 import { authenticateGraphQLRoute } from "@app/utils/utils";

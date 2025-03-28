@@ -24,7 +24,8 @@ import {
 } from "@app/utils/utils";
 import { some, toLower } from "lodash";
 import { PubSub } from "graphql-subscriptions";
-import { IHeartbeat } from "@app/interfaces/heartbeats.interface";
+import { IHeartbeat } from "@app/interfaces/heartbeat.interface";
+import { getCertificateInfo } from "@app/monitors/monitors";
 
 export const pubSub: PubSub = new PubSub();
 
@@ -37,7 +38,9 @@ export const MonitorResolver = {
     ) {
       const { req } = contextValue;
       authenticateGraphQLRoute(req);
+      const result = await getCertificateInfo("https://facebook.com");
 
+      console.log(result);
       const monitor = await getMonitorById(monitorId!);
       return {
         monitors: [monitor],
