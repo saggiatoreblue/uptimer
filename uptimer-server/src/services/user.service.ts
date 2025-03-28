@@ -1,17 +1,16 @@
 import { IUserDocument } from "@app/interfaces/user.interface";
 import { UserModel } from "@app/models/user.model";
 import { Model, Op } from "sequelize";
-import { omit, upperFirst, toLower } from "lodash";
+import { omit, toLower, upperFirst } from "lodash";
 
 export async function createNewUser(
   data: IUserDocument
 ): Promise<IUserDocument> {
   try {
     const result: Model = await UserModel.create(data);
-    const userData: IUserDocument = omit(
-      result.dataValues,
-      "password"
-    ) as IUserDocument;
+    const userData: IUserDocument = omit(result.dataValues, [
+      "password",
+    ]) as IUserDocument;
     return userData;
   } catch (error) {
     throw new Error(error);
@@ -32,7 +31,6 @@ export async function getUserByUsernameOrEmail(
         ],
       },
     })) as unknown as IUserDocument | undefined;
-
     return user;
   } catch (error) {
     throw new Error(error);
@@ -61,7 +59,6 @@ export async function getUserBySocialId(
         ],
       },
     })) as unknown as IUserDocument | undefined;
-
     return user;
   } catch (error) {
     throw new Error(error);
@@ -84,7 +81,6 @@ export async function getUserByProp(
         }),
       },
     })) as unknown as IUserDocument | undefined;
-
     return user;
   } catch (error) {
     throw new Error(error);

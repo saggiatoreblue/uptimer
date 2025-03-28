@@ -11,7 +11,6 @@ const HttpModel: ModelDefined<IHeartbeat, HttpAttributes> = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-
     status: {
       type: DataTypes.SMALLINT,
       allowNull: false,

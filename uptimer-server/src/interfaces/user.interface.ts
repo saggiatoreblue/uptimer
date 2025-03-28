@@ -1,15 +1,13 @@
 import { INotificationDocument } from "./notification.interface";
+
 declare global {
   namespace Express {
     interface Request {
-      session?: {
-        jwt: string;
-        enableAutomaticRefresh: boolean;
-      };
       currentUser?: IAuthPayload;
     }
   }
 }
+
 export interface IAuthPayload {
   id: number;
   username: string;

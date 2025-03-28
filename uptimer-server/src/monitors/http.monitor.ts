@@ -1,9 +1,8 @@
+import { IEmailLocals } from "@app/interfaces/notification.interface";
 import { IHeartbeat } from "@app/interfaces/heartbeat.interface";
 import { IMonitorDocument } from "@app/interfaces/monitor.interface";
-import { IEmailLocals } from "@app/interfaces/notification.interface";
 import logger from "@app/server/logger";
 import { createHttpHeartBeat } from "@app/services/http.service";
-// import { IEmailLocals } from "@app/interfaces/notification.interface";
 import {
   getMonitorById,
   updateMonitorStatus,
@@ -37,7 +36,6 @@ class HttpMonitor {
       redirects,
       bearerToken,
     } = data;
-
     const reqTimeout = timeout! * 1000;
     const startTime: number = Date.now();
     try {
@@ -62,57 +60,56 @@ class HttpMonitor {
           bodyValue = JSON.parse(body!);
           reqContentType = "application/json";
         } catch (error) {
-          throw new Error("Your JSON body is invalid", error);
+          throw new Error("Your JOSN body is invalid");
         }
       }
+
       const options: AxiosRequestConfig = {
         url,
         method: (method || "get").toLowerCase(),
         timeout: reqTimeout,
         headers: {
-          Accept: "text/html, application/json",
+          Accept: "text/html,application/json",
           ...(reqContentType ? { "Content-Type": reqContentType } : {}),
           ...basicAuthHeader,
           ...(headers ? JSON.parse(headers) : {}),
         },
         maxRedirects: redirects,
-        ...(bodyValue && { data: bodyValue }),
+        ...(bodyValue && {
+          data: bodyValue,
+        }),
       };
-
       const response: AxiosResponse = await axios.request(options);
       const responseTime = Date.now() - startTime;
       let heartbeatData: IHeartbeat = {
         monitorId: monitorId!,
         status: 0,
         code: response.status ?? 0,
-        message: `${response.status} - ${response.statusText}`,
-
+        message: "Http monitor check successful.",
         timestamp: dayjs.utc().valueOf(),
         reqHeaders: JSON.stringify(response.headers) ?? "",
-        resHeaders: JSON.stringify(response.request.res.rawHeaders),
+        resHeaders: JSON.stringify(response.request.res.rawHeaders) ?? "",
         reqBody: body,
         resBody: JSON.stringify(response.data) ?? "",
         responseTime,
       };
-
-      const statutsList = JSON.parse(monitorData.statusCode!);
+      const statusList = JSON.parse(monitorData.statusCode!);
       const responseDurationTime = JSON.parse(monitorData.responseTime!);
       const contentTypeList =
         monitorData.contentType!.length > 0
           ? JSON.parse(JSON.stringify(monitorData.contentType!))
           : [];
-
       if (
-        !statutsList.includes(response.status) ||
+        !statusList.includes(response.status) ||
         responseDurationTime < responseTime ||
         (contentTypeList.length > 0 &&
           !contentTypeList.includes(response.headers["content-type"]))
       ) {
-        heartbeatData.message = "Failed http assertion";
         heartbeatData = {
           ...heartbeatData,
           status: 1,
           message: "Failed http response assertion",
+          code: 500,
         };
         this.errorAssertionCheck(monitorData, heartbeatData);
       } else {
@@ -128,13 +125,12 @@ class HttpMonitor {
     monitorData: IMonitorDocument,
     heartbeatData: IHeartbeat
   ): Promise<void> {
-    this.errorCount++;
+    this.errorCount += 1;
     const timestamp = dayjs.utc().valueOf();
     await Promise.all([
       updateMonitorStatus(monitorData, timestamp, "failure"),
       createHttpHeartBeat(heartbeatData),
     ]);
-
     if (
       monitorData.alertThreshold > 0 &&
       this.errorCount > monitorData.alertThreshold
@@ -160,7 +156,6 @@ class HttpMonitor {
       updateMonitorStatus(monitorData, heartbeatData.timestamp, "success"),
       createHttpHeartBeat(heartbeatData),
     ]);
-
     if (!this.noSuccessAlert) {
       this.errorCount = 0;
       this.noSuccessAlert = true;
@@ -173,6 +168,7 @@ class HttpMonitor {
     logger.info(`HTTP heartbeat success: Monitor ID ${monitorData.id}`);
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async httpError(
     monitorId: number,
     startTime: number,
@@ -180,10 +176,9 @@ class HttpMonitor {
     error: any
   ): Promise<void> {
     logger.info(`HTTP heartbeat failed: Monitor ID ${monitorData.id}`);
-
     this.errorCount += 1;
     const timestamp = dayjs.utc().valueOf();
-    let heartbeatData: IHeartbeat = {
+    const heartbeatData: IHeartbeat = {
       monitorId: monitorId!,
       status: 1,
       code: error.response ? error.response.status : 500,
@@ -199,12 +194,10 @@ class HttpMonitor {
       resBody: error.response ? JSON.stringify(error.response.data) : "",
       responseTime: Date.now() - startTime,
     };
-
     await Promise.all([
       updateMonitorStatus(monitorData, timestamp, "failure"),
       createHttpHeartBeat(heartbeatData),
     ]);
-
     if (
       monitorData.alertThreshold > 0 &&
       this.errorCount > monitorData.alertThreshold

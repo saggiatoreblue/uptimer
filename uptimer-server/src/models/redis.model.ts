@@ -11,7 +11,6 @@ const RedisModel: ModelDefined<IHeartbeat, RedisAttributes> = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-
     status: {
       type: DataTypes.SMALLINT,
       allowNull: false,

@@ -1,6 +1,6 @@
 import { buildSchema } from "graphql";
 
-export const notificationSchema = buildSchema(/* GraphQL */ `
+export const notificationSchema = buildSchema(`#graphql
   input Notification {
     userId: Int!
     groupName: String!
@@ -28,12 +28,7 @@ export const notificationSchema = buildSchema(/* GraphQL */ `
 
   type Mutation {
     createNotificationGroup(group: Notification!): NotificationResponse!
-
-    updateNotificationGroup(
-      notificationId: ID!
-      group: Notification!
-    ): NotificationResponse!
-
+    updateNotificationGroup(notificationId: ID!, group: Notification!): NotificationResponse!
     deleteNotificationGroup(notificationId: ID!): DeleteNotificationResponse!
   }
 `);

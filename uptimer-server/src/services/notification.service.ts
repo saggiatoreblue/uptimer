@@ -17,7 +17,7 @@ export async function getSingleNotificationGroup(
   notificationId: number
 ): Promise<INotificationDocument> {
   try {
-    const notification: INotificationDocument =
+    const notifications: INotificationDocument =
       (await NotificationModel.findOne({
         raw: true,
         where: {
@@ -25,7 +25,7 @@ export async function getSingleNotificationGroup(
         },
         order: [["createdAt", "DESC"]],
       })) as unknown as INotificationDocument;
-    return notification;
+    return notifications;
   } catch (error) {
     throw new Error(error);
   }

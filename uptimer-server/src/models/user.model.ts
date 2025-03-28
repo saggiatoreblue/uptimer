@@ -1,7 +1,7 @@
 import { IUserDocument } from "@app/interfaces/user.interface";
 import { sequelize } from "@app/server/database";
-import { Model, Optional, ModelDefined, DataTypes } from "sequelize";
-import { hash, compare } from "bcryptjs";
+import { DataTypes, Model, ModelDefined, Optional } from "sequelize";
+import { compare, hash } from "bcryptjs";
 
 const SALT_ROUND = 10;
 
@@ -59,12 +59,9 @@ const UserModel: ModelDefined<IUserDocument, UserCreationAttributes> &
   UserModelInstanceMethods;
 
 UserModel.addHook("beforeCreate", async (auth: Model) => {
-  let { dataValues } = auth;
   if (auth.dataValues.password !== undefined) {
-    const hashedPassword: string = await hash(
-      auth.dataValues.password,
-      SALT_ROUND
-    );
+    let { dataValues } = auth;
+    const hashedPassword: string = await hash(dataValues.password, SALT_ROUND);
     dataValues = { ...dataValues, password: hashedPassword };
     auth.dataValues = dataValues;
   }

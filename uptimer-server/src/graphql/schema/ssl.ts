@@ -1,6 +1,6 @@
 import { buildSchema } from "graphql";
 
-export const sslMonitorSchema = buildSchema(/* GraphQL */ `
+export const sslMonitorSchema = buildSchema(`#graphql
   input SSLMonitor {
     id: Int
     name: String!
@@ -60,11 +60,7 @@ export const sslMonitorSchema = buildSchema(/* GraphQL */ `
   type Mutation {
     createSSLMonitor(monitor: SSLMonitor!): SSLMonitorResponse
     toggleSSLMonitor(monitor: ToggleSSLMonitor!): SSLMonitorResponse
-    updateSSLMonitor(
-      monitorId: Int!
-      userId: Int!
-      monitor: SSLMonitor!
-    ): SSLMonitorResponse
+    updateSSLMonitor(monitorId: Int!, userId: Int!, monitor: SSLMonitor!): SSLMonitorResponse
     deleteSSLMonitor(monitorId: Int!, userId: Int!): DeleteSSLMonitorResponse
   }
 `);

@@ -11,7 +11,6 @@ const MongoModel: ModelDefined<IHeartbeat, MongoAttributes> = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-
     status: {
       type: DataTypes.SMALLINT,
       allowNull: false,

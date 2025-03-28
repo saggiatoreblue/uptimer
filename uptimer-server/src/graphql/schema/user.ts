@@ -1,6 +1,6 @@
 import { buildSchema } from "graphql";
 
-export const userSchema = buildSchema(/* GraphQL */ `
+export const userSchema = buildSchema(`#graphql
   input Auth {
     username: String
     email: String
@@ -18,7 +18,6 @@ export const userSchema = buildSchema(/* GraphQL */ `
     facebookId: String
   }
 
-  # TODO: this should be output type no?
   input NotificationResult {
     id: ID!
     userId: Int!
@@ -36,7 +35,7 @@ export const userSchema = buildSchema(/* GraphQL */ `
   }
 
   type CurrentUserResponse {
-    user: User!
+    user: User
     notifications: [NotificationResult]
   }
 
@@ -46,9 +45,8 @@ export const userSchema = buildSchema(/* GraphQL */ `
 
   type Mutation {
     loginUser(username: String!, password: String!): AuthResponse!
-    registerUser(user: Auth!): AuthResponse
-
-    authSocialUser(user: Auth!): AuthResponse
+    registerUser(user: Auth!): AuthResponse!
+    authSocialUser(user: Auth!): AuthResponse!
     logout: AuthLogoutResponse
   }
 `);

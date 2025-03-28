@@ -1,6 +1,6 @@
 import { IMonitorDocument } from "@app/interfaces/monitor.interface";
-import { sequelize } from "@app/server/database";
 import { DataTypes, ModelDefined, Optional } from "sequelize";
+import { sequelize } from "@app/server/database";
 
 type MonitorAttributes = Optional<IMonitorDocument, "id">;
 
@@ -12,34 +12,28 @@ const MonitorModel: ModelDefined<IMonitorDocument, MonitorAttributes> =
         type: DataTypes.INTEGER,
         allowNull: false,
       },
-
       userId: {
         type: DataTypes.INTEGER,
         allowNull: false,
       },
-
       name: {
         type: DataTypes.STRING,
         allowNull: false,
       },
-
       active: {
         type: DataTypes.BOOLEAN,
         allowNull: false,
         defaultValue: true,
       },
-
       status: {
         type: DataTypes.SMALLINT,
         allowNull: false,
       },
-
       frequency: {
         type: DataTypes.INTEGER,
         allowNull: false,
         defaultValue: 30,
       },
-
       alertThreshold: {
         type: DataTypes.INTEGER,
         allowNull: false,
@@ -52,24 +46,20 @@ const MonitorModel: ModelDefined<IMonitorDocument, MonitorAttributes> =
         type: DataTypes.STRING,
         allowNull: false,
       },
-
       lastChanged: {
         type: DataTypes.DATE,
         allowNull: true,
       },
-
       timeout: {
         type: DataTypes.INTEGER,
         allowNull: false,
         defaultValue: 10,
       },
-
       uptime: {
         type: DataTypes.INTEGER,
         allowNull: false,
         defaultValue: 0,
       },
-
       redirects: {
         type: DataTypes.INTEGER,
         allowNull: false,

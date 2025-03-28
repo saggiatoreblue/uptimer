@@ -39,7 +39,6 @@ export const getRedisHeartBeatsByDuration = async (
       },
       order: [["timestamp", "DESC"]],
     })) as unknown as IHeartbeat[];
-
     return heartbeats;
   } catch (error) {
     throw new Error(error);
@@ -54,8 +53,7 @@ export const redisStatusMonitor = (
     monitorId: monitor.id,
     url: monitor.url,
   } as IMonitorDocument;
-
-  startSingleJob(name, appTimeZone, monitor.frequency, async () => {
-    redisMonitor.start(redisMonitorData);
-  });
+  startSingleJob(name, appTimeZone, monitor.frequency, async () =>
+    redisMonitor.start(redisMonitorData)
+  );
 };

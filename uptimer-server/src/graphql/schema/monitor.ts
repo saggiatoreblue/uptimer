@@ -1,6 +1,6 @@
 import { buildSchema } from "graphql";
 
-export const monitorSchema = buildSchema(/* GraphQL */ `
+export const monitorSchema = buildSchema(`#graphql
   input Monitor {
     id: Int
     name: String!
@@ -44,17 +44,17 @@ export const monitorSchema = buildSchema(/* GraphQL */ `
   }
 
   type NotificationResponse {
-    id: ID
-    userId: Int
-    groupName: String
-    emails: String
+    id: ID!
+    userId: Int!
+    groupName: String!
+    emails: String!
   }
 
   type MonitorResult {
     id: Int
     name: String!
     userId: Int!
-    active: Boolean
+    active: Boolean!
     status: Int!
     frequency: Int!
     url: String!
@@ -74,17 +74,16 @@ export const monitorSchema = buildSchema(/* GraphQL */ `
     contentType: String
     connection: String
     lastChanged: String
+    port: Int
     uptime: Int
     heartbeats: [HeartBeatResponse!]!
-    port: Int
-    notificationId: Int!
     notifications: NotificationResponse
   }
 
   input ToggleMonitor {
     monitorId: Int!
     userId: Int!
-    name: String
+    name: String!
     active: Boolean!
   }
 
@@ -102,24 +101,16 @@ export const monitorSchema = buildSchema(/* GraphQL */ `
   }
 
   type Query {
-    getSingleMonitor(monitorId: Int!): MonitorResponse
-    getUserMonitors(userId: Int!): MonitorResponse
-    autoRefresh(userId: Int, refresh: Boolean!): AutoRefresh
+    getSingleMonitor(monitorId: String!): MonitorResponse
+    getUserMonitors(userId: String!): MonitorResponse
+    autoRefresh(userId: String!, refresh: Boolean!): AutoRefresh
   }
 
   type Mutation {
     createMonitor(monitor: Monitor!): MonitorResponse
     toggleMonitor(monitor: ToggleMonitor!): MonitorResponse
-    updateMonitor(
-      monitorId: ID!
-      userId: ID!
-      monitor: Monitor!
-    ): MonitorResponse
-    deleteMonitor(
-      monitorId: ID!
-      userId: ID!
-      type: String!
-    ): DeleteMonitorResponse
+    updateMonitor(monitorId: ID!, userId: ID!, monitor: Monitor!): MonitorResponse
+    deleteMonitor(monitorId: ID!, userId: ID!, type: String!): DeleteMonitorResponse
   }
 
   type Subscription {

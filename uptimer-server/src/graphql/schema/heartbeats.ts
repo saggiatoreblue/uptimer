@@ -1,6 +1,6 @@
 import { buildSchema } from "graphql";
 
-export const heartbeatSchema = buildSchema(/* GraphQL */ `
+export const heartbeatSchema = buildSchema(`#graphql
   type HeartBeat {
     id: ID
     monitorId: Int
@@ -17,16 +17,10 @@ export const heartbeatSchema = buildSchema(/* GraphQL */ `
   }
 
   type HeartBeatResult {
-    heartbeats: [HeartBeat]
+    heartbeats: [HeartBeat!]!
   }
 
   type Query {
-    getHeartBeats(
-      type: String!
-      monitorId: Int!
-      duration: String!
-    ): HeartBeatResult
+    getHeartbeats(type: String!, monitorId: String!, duration: String!): HeartBeatResult
   }
 `);
-
-/* TODO: Make sure monitorId is either a string or an int */

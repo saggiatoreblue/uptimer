@@ -1,6 +1,6 @@
 import { INotificationDocument } from "@app/interfaces/notification.interface";
 import { sequelize } from "@app/server/database";
-import { Optional, ModelDefined, DataTypes } from "sequelize";
+import { DataTypes, ModelDefined, Optional } from "sequelize";
 
 import { UserModel } from "./user.model";
 
@@ -30,7 +30,6 @@ const NotificationModel: ModelDefined<
       type: DataTypes.STRING,
       allowNull: false,
     },
-
     createdAt: {
       type: DataTypes.DATE,
       defaultValue: Date.now,
@@ -39,7 +38,6 @@ const NotificationModel: ModelDefined<
   {
     indexes: [
       {
-        unique: false,
         fields: ["userId"],
       },
     ],

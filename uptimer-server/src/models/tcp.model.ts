@@ -11,7 +11,6 @@ const TcpModel: ModelDefined<IHeartbeat, TcpAttributes> = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-
     status: {
       type: DataTypes.SMALLINT,
       allowNull: false,

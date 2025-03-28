@@ -39,7 +39,6 @@ export const getHttpHeartBeatsByDuration = async (
       },
       order: [["timestamp", "DESC"]],
     })) as unknown as IHeartbeat[];
-
     return heartbeats;
   } catch (error) {
     throw new Error(error);
@@ -63,7 +62,6 @@ export const httpStatusMonitor = (
     redirects: monitor.redirects,
     bearerToken: monitor.bearerToken,
   } as IMonitorDocument;
-
   startSingleJob(name, appTimeZone, monitor.frequency, async () =>
     httpMonitor.start(httpMonitorData)
   );

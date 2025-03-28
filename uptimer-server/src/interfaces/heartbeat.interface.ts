@@ -15,6 +15,6 @@ export interface IHeartbeat {
 
 export interface IHeartBeatArgs {
   type: string;
-  monitorId: number;
+  monitorId: string;
   duration: string;
 }

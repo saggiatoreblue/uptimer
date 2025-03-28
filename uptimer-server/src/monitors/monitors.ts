@@ -1,12 +1,19 @@
-import { IMonitorResponse } from "@app/interfaces/monitor.interface";
-import { createClient } from "redis";
-import { MongoClient } from "mongodb";
 import { Socket } from "net";
-import { ISSLInfo } from "@app/interfaces/ssl.interface";
 import { Agent, request, RequestOptions } from "https";
 import { ClientRequest, IncomingMessage } from "http";
 import { PeerCertificate, TLSSocket } from "tls";
+
+import { IMonitorResponse } from "@app/interfaces/monitor.interface";
+import { MongoClient } from "mongodb";
+import { createClient } from "redis";
+import { ISSLInfo } from "@app/interfaces/ssl.interface";
 import { getDaysRemaining } from "@app/utils/utils";
+
+/**
+ * Connect to and ping a MongoDB database
+ * @param {string} connectionString The database connection string
+ * @returns {Promise<IMonitorResponse>}
+ */
 export const mongodbPing = async (
   connectionString: string
 ): Promise<IMonitorResponse> => {
@@ -45,14 +52,19 @@ export const mongodbPing = async (
   });
 };
 
-export const redisPing = async (
+/**
+ * Redis server ping
+ * @param connectionString
+ * @returns {Promise<IMonitorResponse>}
+ */
+export const redisPing = (
   connectionString: string
 ): Promise<IMonitorResponse> => {
   const startTime: number = Date.now();
-
   return new Promise((resolve, reject) => {
-    const client = createClient({ url: connectionString });
-
+    const client = createClient({
+      url: connectionString,
+    });
     client.on("error", (error) => {
       if (client.isOpen) {
         client.disconnect();
@@ -64,39 +76,36 @@ export const redisPing = async (
         code: 500,
       });
     });
-
     client.connect().then(() => {
       if (!client.isOpen) {
         reject({
           status: "refused",
           responseTime: Date.now() - startTime,
-          message: "Redis connection isn\'t open",
+          message: "Connection isn't open",
           code: 500,
         });
-      } else {
-        client
-          .ping()
-          .then(() => {
-            if (client.isOpen) {
-              client.disconnect();
-            }
-
-            resolve({
-              status: "established",
-              responseTime: Date.now() - startTime,
-              message: "Redis server running",
-              code: 200,
-            });
-          })
-          .catch(() => {
-            reject({
-              status: "refused",
-              responseTime: Date.now() - startTime,
-              message: "Redis server down",
-              code: 500,
-            });
-          });
       }
+      client
+        .ping()
+        .then(() => {
+          if (client.isOpen) {
+            client.disconnect();
+          }
+          resolve({
+            status: "established",
+            responseTime: Date.now() - startTime,
+            message: "Redis server running",
+            code: 200,
+          });
+        })
+        .catch((err) => {
+          reject({
+            status: "refused",
+            responseTime: Date.now() - startTime,
+            message: err.message ?? "Redis server down",
+            code: 500,
+          });
+        });
     });
   });
 };
@@ -109,9 +118,10 @@ export const tcpPing = async (
   return new Promise((resolve, reject) => {
     const socket: Socket = new Socket();
     const startTime: number = Date.now();
+
     const options = {
       address: hostname || "127.0.0.1",
-      port: port || 8000,
+      port: port || 80,
       timeout: timeout || 1000,
     };
 
@@ -135,7 +145,7 @@ export const tcpPing = async (
       });
     });
 
-    socket.on("error", (error) => {
+    socket.on("error", (error: Error) => {
       socket.destroy();
       reject({
         status: "refused",
@@ -143,7 +153,7 @@ export const tcpPing = async (
         message:
           error && error.message.length > 0
             ? error.message
-            : "TCP Connection Failed",
+            : "TCP connection failed",
         code: 500,
       });
     });
@@ -157,16 +167,15 @@ export const getCertificateInfo = async (url: string): Promise<ISSLInfo> => {
     } else {
       const list: string[] = url.split("//");
       const host: string = list[1];
-
       const options: Partial<RequestOptions> = {
         agent: new Agent({
           maxCachedSessions: 0,
           rejectUnauthorized: false,
         }),
+        method: "GET",
         port: 443,
         path: "/",
       };
-
       const req: ClientRequest = request(
         { host, ...options },
         (res: IncomingMessage) => {
@@ -196,7 +205,6 @@ export const getCertificateInfo = async (url: string): Promise<ISSLInfo> => {
               common_name: cert.issuer.CN,
               country: cert.issuer.C,
             },
-
             info: {
               validFrom: cert.valid_from,
               validTo: cert.valid_to,
@@ -204,7 +212,6 @@ export const getCertificateInfo = async (url: string): Promise<ISSLInfo> => {
               backgroundClass: "",
             },
           };
-
           if (authorized) {
             if (daysRemaining <= 30) {
               parsed.type = "danger";

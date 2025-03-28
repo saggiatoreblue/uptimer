@@ -39,7 +39,6 @@ export const getTcpHeartBeatsByDuration = async (
       },
       order: [["timestamp", "DESC"]],
     })) as unknown as IHeartbeat[];
-
     return heartbeats;
   } catch (error) {
     throw new Error(error);
@@ -56,8 +55,7 @@ export const tcpStatusMonitor = (
     port: monitor.port,
     timeout: monitor.timeout,
   } as IMonitorDocument;
-
-  startSingleJob(name, appTimeZone, monitor.frequency, async () => {
-    tcpMonitor.start(tcpMonitorData);
-  });
+  startSingleJob(name, appTimeZone, monitor.frequency, async () =>
+    tcpMonitor.start(tcpMonitorData)
+  );
 };

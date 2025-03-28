@@ -6,13 +6,14 @@ import {
   getMonitorById,
   updateMonitorStatus,
 } from "@app/services/monitor.service";
-import { redisPing } from "./monitors";
 import dayjs from "dayjs";
 import { IHeartbeat } from "@app/interfaces/heartbeat.interface";
 import { createRedisHeartBeat } from "@app/services/redis.service";
 import logger from "@app/server/logger";
 import { IEmailLocals } from "@app/interfaces/notification.interface";
 import { emailSender, locals } from "@app/utils/utils";
+
+import { redisPing } from "./monitors";
 
 class RedisMonitor {
   errorCount: number;
@@ -31,7 +32,6 @@ class RedisMonitor {
       const monitorData: IMonitorDocument = await getMonitorById(monitorId!);
       this.emailsLocals.appName = monitorData.name;
       const response: IMonitorResponse = await redisPing(url!);
-
       this.assertionCheck(response, monitorData);
     } catch (error) {
       const monitorData: IMonitorDocument = await getMonitorById(monitorId!);
@@ -101,44 +101,34 @@ class RedisMonitor {
   async redisError(monitorData: IMonitorDocument, error: IMonitorResponse) {
     this.errorCount += 1;
     const timestamp = dayjs.utc().valueOf();
-    let heartbeatData: IHeartbeat = {
+    const heartbeatData: IHeartbeat = {
       monitorId: monitorData.id!,
       status: 1,
       code: error.code,
-      message: error.message ?? "Heartbeats failed",
+      message:
+        error && error.message ? error.message : "Redis heartbeat failed",
       timestamp,
       responseTime: error.responseTime,
       connection: error.status,
     };
-    if (monitorData.connection !== error.status) {
-      this.errorCount += 1;
-      heartbeatData = {
-        ...heartbeatData,
-        status: 1,
-        message: "Failed redis response assertion",
-        code: 500,
-      };
-      await Promise.all([
-        updateMonitorStatus(monitorData, timestamp, "failure"),
-        createRedisHeartBeat(heartbeatData),
-      ]);
-      logger.info(
-        `Redis heartbeat failed assertions: Monitor ID ${monitorData.id}`
+    await Promise.all([
+      updateMonitorStatus(monitorData, timestamp, "failure"),
+      createRedisHeartBeat(heartbeatData),
+    ]);
+    logger.info(`Redis heartbeat failed: Monitor ID ${monitorData.id}`);
+    if (
+      monitorData.alertThreshold > 0 &&
+      this.errorCount > monitorData.alertThreshold
+    ) {
+      this.errorCount = 0;
+      this.noSuccessAlert = false;
+      emailSender(
+        monitorData.notifications!.emails,
+        "errorStatus",
+        this.emailsLocals
       );
-      if (
-        monitorData.alertThreshold > 0 &&
-        this.errorCount > monitorData.alertThreshold
-      ) {
-        this.errorCount = 0;
-        this.noSuccessAlert = false;
-        emailSender(
-          monitorData.notifications!.emails,
-          "errorStatus",
-          this.emailsLocals
-        );
-      }
     }
   }
 }
 
-export const redisMonitor = new RedisMonitor();
+export const redisMonitor: RedisMonitor = new RedisMonitor();

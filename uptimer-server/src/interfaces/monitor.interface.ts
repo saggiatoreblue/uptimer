@@ -44,8 +44,8 @@ export interface IMonitorResponse {
 
 export interface IMonitorArgs {
   monitor?: IMonitorDocument;
-  monitorId?: number;
-  userId?: number;
+  monitorId?: string;
+  userId?: string;
   name?: string;
   active?: boolean;
   type?: string;

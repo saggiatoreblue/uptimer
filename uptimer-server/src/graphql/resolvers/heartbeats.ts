@@ -8,25 +8,24 @@ import { authenticateGraphQLRoute } from "@app/utils/utils";
 
 export const HeartbeatResolver = {
   Query: {
-    async getHeartBeats(
+    async getHeartbeats(
       _: undefined,
       args: IHeartBeatArgs,
       contextValue: AppContext
     ) {
       const { req } = contextValue;
       authenticateGraphQLRoute(req);
-
       const { type, monitorId, duration } = args;
       const heartbeats: IHeartbeat[] = await getHeartbeats(
         type,
-        monitorId,
+        parseInt(monitorId),
         parseInt(duration)
       );
-
-      return heartbeats;
+      return {
+        heartbeats,
+      };
     },
   },
-
   HeartBeat: {
     timestamp: (heartbeat: IHeartbeat) => JSON.stringify(heartbeat.timestamp),
   },
