@@ -8,9 +8,18 @@ import {
   MutationFunctionOptions,
   useMutation,
 } from '@apollo/client';
-import { REGISTER_USER } from '@/queries/auth';
+import { AUTH_SOCIAL_USER, REGISTER_USER } from '@/queries/auth';
 import { showErrorToast } from '@/utils/utils';
 import { DispatchProps, MonitorContext } from '@/context/MonitorContext';
+import {
+  Auth,
+  FacebookAuthProvider,
+  getAuth,
+  GoogleAuthProvider,
+  signInWithPopup,
+  UserCredential,
+} from 'firebase/auth';
+import firebaseApp from '../firebase';
 
 export const useRegister = (): IUserAuth => {
   const { dispatch } = useContext(MonitorContext);
@@ -47,6 +56,58 @@ export const useRegister = (): IUserAuth => {
     validationErrors,
     setValidationErrors,
     onRegisterSubmit,
+  };
+};
+
+export const useSocialRegister = (): IUserAuth => {
+  const { dispatch } = useContext(MonitorContext);
+
+  const router: AppRouterInstance = useRouter();
+  const [authSocialUser, { loading }] = useMutation(AUTH_SOCIAL_USER);
+
+  const registerWithGoogle = async (): Promise<void> => {
+    const provider = new GoogleAuthProvider();
+    const auth: Auth = getAuth(firebaseApp);
+    auth.useDeviceLanguage();
+    const userCredential: UserCredential = await signInWithPopup(
+      auth,
+      provider
+    );
+
+    console.log(userCredential);
+
+    const nameList = userCredential.user.displayName!.split(' ');
+    const data = {
+      username: nameList[0],
+      email: userCredential.user.email,
+      socialId: userCredential.user.uid,
+      type: 'google',
+    };
+    submitUserData(data as RegisterType, authSocialUser, dispatch, router);
+  };
+
+  const registerWithFacebook = async (): Promise<void> => {
+    const provider = new FacebookAuthProvider();
+    const auth: Auth = getAuth(firebaseApp);
+    auth.useDeviceLanguage();
+    const userCredential: UserCredential = await signInWithPopup(
+      auth,
+      provider
+    );
+    const nameList = userCredential.user.displayName!.split(' ');
+    const data = {
+      username: nameList[0],
+      email: userCredential.user.email,
+      socialId: userCredential.user.uid,
+      type: 'facebook',
+    };
+    submitUserData(data as RegisterType, authSocialUser, dispatch, router);
+  };
+
+  return {
+    loading,
+    authWithGoogle: registerWithGoogle,
+    authWithFacebook: registerWithFacebook,
   };
 };
 

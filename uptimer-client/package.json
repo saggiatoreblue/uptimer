@@ -12,6 +12,7 @@
     "@apollo/client": "^3.13.5",
     "apollo3-cache-persist": "^0.15.0",
     "clsx": "^2.1.1",
+    "firebase": "^11.5.0",
     "graphql": "^16.10.0",
     "graphql-ws": "^6.0.4",
     "next": "15.2.4",

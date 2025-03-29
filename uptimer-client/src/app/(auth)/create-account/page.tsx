@@ -5,7 +5,7 @@ import { FC, ReactElement, useState } from "react";
 import TextInput from "@/components/TextInput";
 import { FaEye, FaEyeSlash, FaFacebook, FaGoogle } from "react-icons/fa";
 import Button from "@/components/Button";
-import { useRegister } from "./useRegister";
+import { useRegister, useSocialRegister } from "./useRegister";
 import clsx from "clsx";
 import PageLoader from "@/components/PageLoader";
 
@@ -14,9 +14,15 @@ const Register: FC = (): ReactElement => {
   const { loading, validationErrors, setValidationErrors, onRegisterSubmit } =
     useRegister();
 
+  const {
+    loading: socialAuthLoading,
+    authWithGoogle,
+    authWithFacebook,
+  } = useSocialRegister();
+
   return (
     <div className="relative flex flex-col h-screen mx-auto w-11/12 max-w-md rounded-lg bg-white md:w-2/3">
-      {loading && <PageLoader />}
+      {socialAuthLoading && <PageLoader />}
 
       <form action={onRegisterSubmit}>
         <div className="mt-12 w-full px-5">
@@ -150,12 +156,24 @@ const Register: FC = (): ReactElement => {
           icon={<FaGoogle className="mr-2 -ml-1 w-4 h-4" />}
           className="mb-3 text-md w-full cursor-pointer rounded px-8 py-2 text-center font-bold text-white inline-flex items-center justify-center bg-[#4285F4] hover:bg-[#4285F4] / 90 focus:outline-none"
           label="Sign In with Google"
+          onClick={(event) => {
+            event?.preventDefault();
+            if (authWithGoogle) {
+              authWithGoogle();
+            }
+          }}
         />
         <Button
           type="button"
           icon={<FaFacebook className="mr-2 -ml-1 w-4 h-4" />}
           className="text-md w-full cursor-pointer rounded px-8 py-2 text-center font-bold text-white inline-flex items-center justify-center bg-[#3b5998] hover:bg-[#3b5998] / 90 focus:outline-none"
           label="Sign In with Facebook"
+          onClick={(event) => {
+            event?.preventDefault();
+            if (authWithFacebook) {
+              authWithFacebook();
+            }
+          }}
         />
       </div>
     </div>
