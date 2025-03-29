@@ -1,0 +1,36 @@
+{
+  "name": "uptimer-client",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --turbo",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@apollo/client": "^3.13.5",
+    "apollo3-cache-persist": "^0.15.0",
+    "clsx": "^2.1.1",
+    "graphql": "^16.10.0",
+    "graphql-ws": "^6.0.4",
+    "next": "15.2.4",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-icons": "^5.5.0",
+    "react-toastify": "^11.0.5",
+    "sharp": "^0.33.5",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19.0.12",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "15.2.4",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}
