@@ -106,6 +106,7 @@ export const useHttpCreate = (): IUseUptime => {
           }
         }
       } catch (error) {
+        console.error(error);
         showErrorToast('Error creating HTTP Monitor.');
       }
     });

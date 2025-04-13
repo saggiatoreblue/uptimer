@@ -27,7 +27,10 @@ const CreateHttpMonitor: FC = (): ReactElement => {
       {loading ? (
         <PageLoader />
       ) : (
-        <form action={onHandleSubmit} className="m-auto relative min-h-screen xl:container">
+        <form
+          action={onHandleSubmit}
+          className="m-auto relative min-h-screen xl:container"
+        >
           <div className="py-2 text-base lg:text-xl font-bold m-auto mt-4 w-[80%]">
             Add New HTTP Monitor
           </div>
@@ -45,11 +48,17 @@ const CreateHttpMonitor: FC = (): ReactElement => {
                 type="string"
                 selectedItem={`${monitorInfo.active ? "Running" : "Paused"}`}
                 onClick={(event: string) => {
-                  setMonitorInfo({ ...monitorInfo, active: event === "Running" });
+                  setMonitorInfo({
+                    ...monitorInfo,
+                    active: event === "Running",
+                  });
                 }}
               />
-              <label htmlFor="active" className="block my-1 text-xs text-gray-500">
-                This defined whether the test will start to run right away, or
+              <label
+                htmlFor="active"
+                className="block my-1 text-xs text-gray-500"
+              >
+                This defines whether the test will start to run right away, or
                 should be paused for later activation.
               </label>
             </div>
@@ -90,7 +99,10 @@ const CreateHttpMonitor: FC = (): ReactElement => {
               className={clsx(
                 "bg-white border border-black text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5",
                 {
-                  "pointer-events-none bg-gray opacity-5": !EXCLUDED_HTTP_METHODS.includes(upperCase(monitorInfo.method)),
+                  "pointer-events-none bg-gray opacity-5":
+                    !EXCLUDED_HTTP_METHODS.includes(
+                      upperCase(monitorInfo.method)
+                    ),
                   "border border-red-400": validationErrors!.headers,
                 }
               )}
@@ -103,21 +115,27 @@ const CreateHttpMonitor: FC = (): ReactElement => {
               }}
             />
             <div className="mt-5">
-              <label htmlFor="auth" className="block mb-2 text-medium font-medium text-gray-900">
+              <label
+                htmlFor="auth"
+                className="block mb-2 text-medium font-medium text-gray-900"
+              >
                 Authentication (optional)
               </label>
               <select
                 id="auth"
                 name="auth"
                 className={clsx(
-                  'bg-white border border-black text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5',
+                  "bg-white border border-black text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5",
                   {
-                    'border border-red-400': validationErrors!.basicAuthUser || validationErrors!.basicAuthPass
+                    "border border-red-400":
+                      validationErrors!.basicAuthUser ||
+                      validationErrors!.basicAuthPass,
                   }
                 )}
                 value={monitorInfo.httpAuthMethod}
                 onChange={(event: ChangeEvent) => {
-                  const value: string = (event.target as HTMLInputElement).value;
+                  const value: string = (event.target as HTMLInputElement)
+                    .value;
                   setMonitorInfo({ ...monitorInfo, httpAuthMethod: value });
                 }}
               >
@@ -125,72 +143,91 @@ const CreateHttpMonitor: FC = (): ReactElement => {
                 <option value="basic">HTTP Basic Auth</option>
                 <option value="token">Bearer Token</option>
               </select>
-              {monitorInfo.httpAuthMethod && monitorInfo.httpAuthMethod !== 'none' && (
-                <div className="mt-4 border p-4">
-                  {monitorInfo.httpAuthMethod === 'basic' && (
-                    <>
-                      <MonitorItem
-                        id="text"
-                        type="username"
-                        topClass="mb-2"
-                        labelStart="Username"
-                        className={clsx(
-                          'bg-white border border-black text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5',
-                          {
-                            'border border-red-400': validationErrors!.basicAuthUser
-                          }
-                        )}
-                        inputValue={monitorInfo.basicAuthUser}
-                        placeholder="Username"
-                        onChange={(event: ChangeEvent) => {
-                          const value: string = (event.target as HTMLInputElement).value;
-                          setMonitorInfo({ ...monitorInfo, basicAuthUser: value });
-                        }}
-                      />
-                      <MonitorItem
-                        id="password"
-                        type="password"
-                        topClass="mb-2"
-                        labelStart="Password"
-                        className={clsx(
-                          'bg-white border border-black text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5',
-                          {
-                            'border border-red-400': validationErrors!.basicAuthPass
-                          }
-                        )}
-                        inputValue={monitorInfo.basicAuthPass}
-                        placeholder="Password"
-                        onChange={(event: ChangeEvent) => {
-                          const value: string = (event.target as HTMLInputElement).value;
-                          setMonitorInfo({ ...monitorInfo, basicAuthPass: value });
-                        }}
-                      />
-                    </>
-                  )}
-                  {monitorInfo.httpAuthMethod === 'token' && (
-                    <>
-                      <MonitorItem
-                        id="token"
-                        type="text"
-                        topClass="mb-2"
-                        labelStart="Token"
-                        className={clsx(
-                          'bg-white border border-black text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5',
-                          {
-                            'border border-red-400': validationErrors!.bearerToken
-                          }
-                        )}
-                        inputValue={monitorInfo.bearerToken}
-                        placeholder="Bearer token"
-                        onChange={(event: ChangeEvent) => {
-                          const value: string = (event.target as HTMLInputElement).value;
-                          setMonitorInfo({ ...monitorInfo, bearerToken: value });
-                        }}
-                      />
-                    </>
-                  )}
-                </div>
-              )}
+              {monitorInfo.httpAuthMethod &&
+                monitorInfo.httpAuthMethod !== "none" && (
+                  <div className="mt-4 border p-4">
+                    {monitorInfo.httpAuthMethod === "basic" && (
+                      <>
+                        <MonitorItem
+                          id="text"
+                          type="username"
+                          topClass="mb-2"
+                          labelStart="Username"
+                          className={clsx(
+                            "bg-white border border-black text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5",
+                            {
+                              "border border-red-400":
+                                validationErrors!.basicAuthUser,
+                            }
+                          )}
+                          inputValue={monitorInfo.basicAuthUser}
+                          placeholder="Username"
+                          onChange={(event: ChangeEvent) => {
+                            const value: string = (
+                              event.target as HTMLInputElement
+                            ).value;
+                            setMonitorInfo({
+                              ...monitorInfo,
+                              basicAuthUser: value,
+                            });
+                          }}
+                        />
+                        <MonitorItem
+                          id="password"
+                          type="password"
+                          topClass="mb-2"
+                          labelStart="Password"
+                          className={clsx(
+                            "bg-white border border-black text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5",
+                            {
+                              "border border-red-400":
+                                validationErrors!.basicAuthPass,
+                            }
+                          )}
+                          inputValue={monitorInfo.basicAuthPass}
+                          placeholder="Password"
+                          onChange={(event: ChangeEvent) => {
+                            const value: string = (
+                              event.target as HTMLInputElement
+                            ).value;
+                            setMonitorInfo({
+                              ...monitorInfo,
+                              basicAuthPass: value,
+                            });
+                          }}
+                        />
+                      </>
+                    )}
+                    {monitorInfo.httpAuthMethod === "token" && (
+                      <>
+                        <MonitorItem
+                          id="token"
+                          type="text"
+                          topClass="mb-2"
+                          labelStart="Token"
+                          className={clsx(
+                            "bg-white border border-black text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5",
+                            {
+                              "border border-red-400":
+                                validationErrors!.bearerToken,
+                            }
+                          )}
+                          inputValue={monitorInfo.bearerToken}
+                          placeholder="Bearer token"
+                          onChange={(event: ChangeEvent) => {
+                            const value: string = (
+                              event.target as HTMLInputElement
+                            ).value;
+                            setMonitorInfo({
+                              ...monitorInfo,
+                              bearerToken: value,
+                            });
+                          }}
+                        />
+                      </>
+                    )}
+                  </div>
+                )}
             </div>
             <MonitorItem
               id="timeout"
@@ -201,7 +238,10 @@ const CreateHttpMonitor: FC = (): ReactElement => {
               placeholder="Request timeout"
               onChange={(event: ChangeEvent) => {
                 const value: string = (event.target as HTMLInputElement).value;
-                setMonitorInfo({ ...monitorInfo, timeout: !isNaN(parseInt(value)) ? parseInt(value) : '' });
+                setMonitorInfo({
+                  ...monitorInfo,
+                  timeout: !isNaN(parseInt(value)) ? parseInt(value) : "",
+                });
               }}
             />
             <MonitorItem
@@ -214,7 +254,10 @@ const CreateHttpMonitor: FC = (): ReactElement => {
               placeholder="Redirects"
               onChange={(event: ChangeEvent) => {
                 const value: string = (event.target as HTMLInputElement).value;
-                setMonitorInfo({ ...monitorInfo, redirects: !isNaN(parseInt(value)) ? parseInt(value) : '' });
+                setMonitorInfo({
+                  ...monitorInfo,
+                  redirects: !isNaN(parseInt(value)) ? parseInt(value) : "",
+                });
               }}
             />
             <Assertions>
@@ -226,8 +269,14 @@ const CreateHttpMonitor: FC = (): ReactElement => {
                 inputValue={monitorInfo.responseTime}
                 placeholder="Default is 2000 ms"
                 onChange={(event: ChangeEvent) => {
-                  const value: string = (event.target as HTMLInputElement).value;
-                  setMonitorInfo({ ...monitorInfo, responseTime: !isNaN(parseInt(value)) ? parseInt(value) : '' });
+                  const value: string = (event.target as HTMLInputElement)
+                    .value;
+                  setMonitorInfo({
+                    ...monitorInfo,
+                    responseTime: !isNaN(parseInt(value))
+                      ? parseInt(value)
+                      : "",
+                  });
                 }}
               />
               <MonitorItem
@@ -239,7 +288,8 @@ const CreateHttpMonitor: FC = (): ReactElement => {
                 inputValue={monitorInfo.statusCode}
                 placeholder="Enter all codes and separate by comma. Default is 200."
                 onChange={(event: ChangeEvent) => {
-                  const value: string = (event.target as HTMLInputElement).value;
+                  const value: string = (event.target as HTMLInputElement)
+                    .value;
                   setMonitorInfo({ ...monitorInfo, statusCode: value });
                 }}
               />
@@ -252,7 +302,8 @@ const CreateHttpMonitor: FC = (): ReactElement => {
                 inputValue={monitorInfo.contentType}
                 placeholder="Example: text/html; charset=utf-8, application/json"
                 onChange={(event: ChangeEvent) => {
-                  const value: string = (event.target as HTMLInputElement).value;
+                  const value: string = (event.target as HTMLInputElement)
+                    .value;
                   setMonitorInfo({ ...monitorInfo, contentType: value });
                 }}
               />
