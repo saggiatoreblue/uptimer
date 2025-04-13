@@ -37,7 +37,8 @@ class HttpMonitor {
       bearerToken,
     } = data;
     const reqTimeout = timeout! * 1000;
-    const startTime: number = Date.now();
+    let startTime: number = Date.now(); // Declare startTime in the outer scope
+
     try {
       const monitorData: IMonitorDocument = await getMonitorById(monitorId!);
       this.emailsLocals.appName = monitorData.name;
@@ -79,8 +80,12 @@ class HttpMonitor {
           data: bodyValue,
         }),
       };
+
+      // Start the timer immediately before the axios request
+      startTime = Date.now();
       const response: AxiosResponse = await axios.request(options);
       const responseTime = Date.now() - startTime;
+
       let heartbeatData: IHeartbeat = {
         monitorId: monitorId!,
         status: 0,
@@ -93,6 +98,7 @@ class HttpMonitor {
         resBody: JSON.stringify(response.data) ?? "",
         responseTime,
       };
+
       const statusList = JSON.parse(monitorData.statusCode!);
       const responseDurationTime = JSON.parse(monitorData.responseTime!);
       const contentTypeList =
@@ -116,6 +122,7 @@ class HttpMonitor {
         this.successAssertionCheck(monitorData, heartbeatData);
       }
     } catch (error) {
+      // Now startTime is available here.
       const monitorData: IMonitorDocument = await getMonitorById(monitorId!);
       this.httpError(monitorId!, startTime, monitorData, error);
     }

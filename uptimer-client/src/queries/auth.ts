@@ -42,3 +42,30 @@ export const AUTH_SOCIAL_USER = gql`
   }
   ${authDataFragment}
 `;
+
+export const CHECK_CURRENT_USER = gql`
+  query CheckCurrentUser {
+    checkCurrentUser {
+      user {
+        id
+        username
+        email
+        googleId
+        facebookId
+      }
+      notifications {
+        id
+        groupName
+        emails
+      }
+    }
+  }
+`;
+
+export const LOGOUT_USER = gql`
+  mutation {
+    logout {
+      message
+    }
+  }
+`;

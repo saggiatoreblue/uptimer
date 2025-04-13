@@ -1,7 +1,8 @@
 import { FC, ReactElement } from "react";
+import Home from "./components/Home";
 
 const StatusPage: FC = (): ReactElement => {
-  return <div>Home Page</div>;
+  return <Home></Home>;
 };
 
 export default StatusPage;

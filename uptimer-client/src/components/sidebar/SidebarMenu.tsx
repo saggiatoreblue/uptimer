@@ -53,7 +53,10 @@ const SidebarMenu: FC<SidebarMenuProps> = ({
                   {submenu.name}
                 </Link>
               ) : (
-                <div className="cursor-pointer py-2 ml-4 rounded-md mt-1">
+                <div
+                  onClick={submenu.onClick}
+                  className="cursor-pointer py-2 ml-4 rounded-md mt-1"
+                >
                   {submenu.name}
                 </div>
               )}

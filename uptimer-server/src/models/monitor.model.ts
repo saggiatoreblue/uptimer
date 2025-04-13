@@ -23,7 +23,7 @@ const MonitorModel: ModelDefined<IMonitorDocument, MonitorAttributes> =
       active: {
         type: DataTypes.BOOLEAN,
         allowNull: false,
-        defaultValue: true,
+        defaultValue: false,
       },
       status: {
         type: DataTypes.SMALLINT,

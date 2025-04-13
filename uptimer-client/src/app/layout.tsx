@@ -4,6 +4,10 @@ import "./globals.css";
 import CustomApolloProvider from "@/components/apollo/CustomApolloProvider";
 import { ToastContainer } from "react-toastify";
 import { MonitorProvider } from "@/context/MonitorContext";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+
+dayjs.extend(relativeTime);
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
